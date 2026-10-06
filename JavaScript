@@ -1,0 +1,482 @@
+```javascript
+// ==========================================
+// NETFLIX - JAVASCRIPT
+// ==========================================
+
+
+// ==========================================
+// USUARIOS
+// ==========================================
+
+let usuarios = JSON.parse(
+    localStorage.getItem("usuariosNetflix")
+) || [];
+
+
+// ==========================================
+// CUENTA DE DEMOSTRACIÓN
+// ==========================================
+
+const cuentaDemo = {
+    nombre: "Administrador",
+    email: "admin@netflix.com",
+    password: "123456"
+};
+
+
+// Crear cuenta demo si no existe
+
+if (!usuarios.some(u => u.email === cuentaDemo.email)) {
+
+    usuarios.push(cuentaDemo);
+
+    localStorage.setItem(
+        "usuariosNetflix",
+        JSON.stringify(usuarios)
+    );
+}
+
+
+// ==========================================
+// ELEMENTOS
+// ==========================================
+
+const loginContainer =
+    document.getElementById("login-container");
+
+const mainContent =
+    document.getElementById("main-content");
+
+const loginBox =
+    document.getElementById("login-box");
+
+const registerBox =
+    document.getElementById("register-box");
+
+
+// ==========================================
+// MOSTRAR REGISTRO
+// ==========================================
+
+function mostrarRegistro() {
+
+    loginBox.style.display = "none";
+
+    registerBox.style.display = "block";
+
+}
+
+
+// ==========================================
+// MOSTRAR LOGIN
+// ==========================================
+
+function mostrarLogin() {
+
+    registerBox.style.display = "none";
+
+    loginBox.style.display = "block";
+
+}
+
+
+// ==========================================
+// REGISTRAR USUARIO
+// ==========================================
+
+document
+.getElementById("register-form")
+.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+
+    const nombre =
+        document.getElementById("register-name")
+        .value
+        .trim();
+
+
+    const email =
+        document.getElementById("register-email")
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const password =
+        document.getElementById("register-password")
+        .value;
+
+
+    const password2 =
+        document.getElementById("register-password2")
+        .value;
+
+
+    const error =
+        document.getElementById("register-error");
+
+
+    // Comprobar contraseña
+
+    if (password.length < 6) {
+
+        error.textContent =
+            "La contraseña debe tener mínimo 6 caracteres.";
+
+        return;
+    }
+
+
+    // Confirmar contraseña
+
+    if (password !== password2) {
+
+        error.textContent =
+            "Las contraseñas no coinciden.";
+
+        return;
+    }
+
+
+    // Comprobar correo existente
+
+    const existe =
+        usuarios.some(
+            usuario => usuario.email === email
+        );
+
+
+    if (existe) {
+
+        error.textContent =
+            "Este correo ya está registrado.";
+
+        return;
+    }
+
+
+    // Crear usuario
+
+    const nuevoUsuario = {
+
+        nombre: nombre,
+
+        email: email,
+
+        password: password
+
+    };
+
+
+    usuarios.push(nuevoUsuario);
+
+
+    // Guardar usuarios
+
+    localStorage.setItem(
+        "usuariosNetflix",
+        JSON.stringify(usuarios)
+    );
+
+
+    alert(
+        "¡Cuenta creada correctamente!"
+    );
+
+
+    // Limpiar formulario
+
+    document
+        .getElementById("register-form")
+        .reset();
+
+
+    error.textContent = "";
+
+
+    // Volver al login
+
+    mostrarLogin();
+
+
+    // Colocar correo automáticamente
+
+    document.getElementById("email").value =
+        email;
+
+});
+
+
+// ==========================================
+// LOGIN
+// ==========================================
+
+document
+.getElementById("login-form")
+.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+
+    const email =
+        document.getElementById("email")
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const password =
+        document.getElementById("password")
+        .value;
+
+
+    const error =
+        document.getElementById("login-error");
+
+
+    // Buscar usuario
+
+    const usuario =
+        usuarios.find(
+            u =>
+                u.email === email &&
+                u.password === password
+        );
+
+
+    // Usuario encontrado
+
+    if (usuario) {
+
+        // Guardar sesión
+
+        localStorage.setItem(
+            "sesionNetflix",
+            JSON.stringify(usuario)
+        );
+
+
+        // Entrar
+
+        entrarNetflix(usuario);
+
+
+        error.textContent = "";
+
+    } else {
+
+        error.textContent =
+            "Correo o contraseña incorrectos.";
+
+    }
+
+});
+
+
+// ==========================================
+// ENTRAR A NETFLIX
+// ==========================================
+
+function entrarNetflix(usuario) {
+
+    loginContainer.style.display = "none";
+
+    mainContent.style.display = "block";
+
+
+    const nombre =
+        document.getElementById(
+            "nombre-usuario"
+        );
+
+
+    if (nombre) {
+
+        nombre.textContent =
+            usuario.nombre;
+
+    }
+
+}
+
+
+// ==========================================
+// COMPROBAR SESIÓN
+// ==========================================
+
+window.addEventListener(
+    "load",
+    function() {
+
+        const sesion =
+            localStorage.getItem(
+                "sesionNetflix"
+            );
+
+
+        if (sesion) {
+
+            const usuario =
+                JSON.parse(sesion);
+
+
+            entrarNetflix(usuario);
+
+        } else {
+
+            loginContainer.style.display =
+                "flex";
+
+            mainContent.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// CERRAR SESIÓN
+// ==========================================
+
+function cerrarSesion() {
+
+    localStorage.removeItem(
+        "sesionNetflix"
+    );
+
+
+    mainContent.style.display =
+        "none";
+
+
+    loginContainer.style.display =
+        "flex";
+
+
+    document
+        .getElementById("login-form")
+        .reset();
+
+}
+
+
+// ==========================================
+// BUSCADOR
+// ==========================================
+
+const search =
+    document.getElementById("search");
+
+
+search.addEventListener(
+    "input",
+    function() {
+
+        const texto =
+            search.value
+            .toLowerCase()
+            .trim();
+
+
+        const peliculas =
+            document.querySelectorAll(
+                ".movie-card"
+            );
+
+
+        peliculas.forEach(
+            pelicula => {
+
+                const titulo =
+                    pelicula.dataset.title
+                    .toLowerCase();
+
+
+                if (
+                    titulo.includes(texto)
+                ) {
+
+                    pelicula.style.display =
+                        "block";
+
+                } else {
+
+                    pelicula.style.display =
+                        "none";
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+// ==========================================
+// REPRODUCTOR
+// ==========================================
+
+function reproducir(pelicula) {
+
+    const modal =
+        document.getElementById(
+            "player-modal"
+        );
+
+
+    const titulo =
+        document.getElementById(
+            "movie-playing"
+        );
+
+
+    titulo.textContent =
+        "▶ " + pelicula;
+
+
+    modal.style.display =
+        "flex";
+
+}
+
+
+// ==========================================
+// CERRAR REPRODUCTOR
+// ==========================================
+
+function cerrarReproductor() {
+
+    document.getElementById(
+        "player-modal"
+    ).style.display =
+        "none";
+
+}
+
+
+// ==========================================
+// CERRAR MODAL AL HACER CLICK AFUERA
+// ==========================================
+
+document
+.getElementById("player-modal")
+.addEventListener(
+    "click",
+    function(event) {
+
+        if (
+            event.target === this
+        ) {
+
+            cerrarReproductor();
+
+        }
+
+    }
+);
+```
